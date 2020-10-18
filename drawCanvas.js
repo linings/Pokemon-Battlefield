@@ -21,26 +21,26 @@ const takeCurentSprite = async (spriteDetails) => {
       stats: findStats(info.stats),
     });
   }
-
-  const findAbility = (info) => {
-    const ability = info.abilities.find((el) => el.is_hidden === true);
-    if (ability) {
-      return ability.ability.name;
-    }
-    return null;
-  };
-
-  const findStats = (infoStats) => {
-    const stats = [];
-    for (const stat of infoStats) {
-      stats.push({
-        name: stat.stat.name,
-        base_stat: stat.base_stat,
-      });
-    }
-    return stats;
-  };
   return allSpritesInfo;
+};
+
+const findAbility = (info) => {
+  const ability = info.abilities.find((el) => el.is_hidden === true);
+  if (ability) {
+    return ability.ability.name;
+  }
+  return null;
+};
+
+const findStats = (infoStats) => {
+  const stats = [];
+  for (const stat of infoStats) {
+    stats.push({
+      name: stat.stat.name,
+      base_stat: stat.base_stat,
+    });
+  }
+  return stats;
 };
 
 const sprites = [
