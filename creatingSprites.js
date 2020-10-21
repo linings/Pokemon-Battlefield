@@ -1,12 +1,17 @@
-import { app,style } from './index.js';
-import clickOnAFighter from './battlefieldScene.js';
+import { app, battlefield, style } from './index.js';
+// import clickOnAFighter from './battlefieldScene.js';
 
 let Text = PIXI.Text,
   Container = PIXI.Container,
-  loader = PIXI.loader,
-  resources = PIXI.Loader.shared.resources,
-  Sprite = PIXI.Sprite,
   Graphics = PIXI.Graphics;
+
+let textureArray = [];
+let animatedSprite = '';
+let healthBar1, healthBar2;
+
+let play;
+let healthDecreaser = 0;
+let isFighterFirst;
 
 const creatingSprites = (result) => {
   let alienImages = [];
@@ -15,8 +20,8 @@ const creatingSprites = (result) => {
     alienImages.push(result[i]['sprite_front']);
   }
   for (let i = 0; i < alienImages.length; i++) {
-    let textureArray = [];
-    let animatedSprite = '';
+    textureArray = [];
+    animatedSprite = '';
     let texture = PIXI.Texture.from(alienImages[i]);
     textureArray.push(texture);
 
@@ -113,7 +118,7 @@ const creatingSprites = (result) => {
       ]);
     }
 
-    clickOnAFighter(animatedSprite , result);
+    clickOnAFighter(animatedSprite, result);
 
     app.stage.addChild(
       animatedSprite,
@@ -163,8 +168,11 @@ const creatingText = (vp, hp, spriteSpecialties) => {
 
 const creatingStats = (result, i) => {
   let stats = {};
-  for (let j = 0; j < result[i].stats.length; j++) {
-    stats[result[i].stats[j].name] = result[i].stats[j]['base_stat'];
+
+  for (let j = 0; j < Object.keys(result[i].stats).length; j++) {
+    stats[Object.entries(result[i].stats)[j][0]] = Object.entries(
+      result[i].stats
+    )[j][1];
   }
 
   let speed = new Text(`speed: ${stats.speed}`, style);
@@ -183,8 +191,256 @@ const creatingStats = (result, i) => {
   return [speed, specialDefense, specialAttack, defense, attack, health];
 };
 
+const clickOnAFighter = (animatedSprite, result) => {
+  animatedSprite.interactive = true;
+  animatedSprite.buttonMode = true;
+  let counter = 0;
 
-///
-///
-///
+  animatedSprite.on('click', onClick);
+
+  function onClick() {
+    if (counter === 0) {
+      app.stage.visible = false;
+
+      document.body.removeChild(app.view);
+      document.body.appendChild(battlefield.view);
+
+      battlefield.renderer.backgroundColor = 0x52258844;
+      counter++;
+    }
+
+    const [fighter, competitor, firstSprite, secondSprite] = loadRandomFighter(
+      result,
+      animatedSprite
+    );
+
+    makeHPbar1(0, 100, 250, 120, 20, 0);
+    makeHPbar2(0, 530, 250, 120, 20, 0);
+
+    displayNameOfFighter(fighter, competitor, 120, 550, 220);
+
+    fighting(fighter, competitor, [firstSprite, secondSprite]);
+  }
+};
+
+const loadRandomFighter = (result, animatedSprite) => {
+  let spriteOne, spriteTwo;
+
+  const fighter = result.find(
+    (f) => f.sprite_front === animatedSprite.texture.textureCacheIds[0]
+  );
+
+  spriteOne = addFightersToStage(fighter.sprite_back);
+  spriteOne.position.set(120, 120);
+
+  const competitor = result[Math.floor(Math.random() * result.length)];
+
+  if (competitor.sprite_front !== fighter.sprite_front) {
+    spriteTwo = addFightersToStage(competitor.sprite_front);
+    spriteTwo.position.set(550, 120);
+  } else {
+    loadRandomFighter();
+  }
+
+  return [fighter, competitor, spriteOne, spriteTwo];
+};
+
+const addFightersToStage = (sprite) => {
+  let texture = PIXI.Texture.from(sprite);
+  const animatedSprite = new PIXI.AnimatedSprite([texture]);
+  battlefield.stage.addChild(animatedSprite);
+
+  return animatedSprite;
+};
+
+const makeHPbar1 = (healthBarPosition, x, y, w, h) => {
+  healthBar1 = new Container();
+  healthBar1.position.set(healthBarPosition, 4);
+  battlefield.stage.addChild(healthBar1);
+
+  // Create the black background rectangle
+  let innerBar = new Graphics();
+  innerBar.beginFill(0xff3300);
+  innerBar.drawRect(x, y, w, h);
+  innerBar.endFill();
+  healthBar1.addChild(innerBar);
+
+  //Create the front red rectangle
+  let outerBar = new Graphics();
+  outerBar.beginFill(0x00bb43);
+  outerBar.drawRect(x, y, w - healthDecreaser, h);
+  outerBar.endFill();
+  healthBar1.addChild(outerBar);
+
+  healthBar1.outerBarFirst = outerBar;
+};
+
+const makeHPbar2 = (healthBarPosition, x, y, w, h) => {
+  healthBar2 = new Container();
+  healthBar2.position.set(healthBarPosition, 4);
+  battlefield.stage.addChild(healthBar2);
+
+  // Create the black background rectangle
+  let innerBar = new Graphics();
+  innerBar.beginFill(0xff3300);
+  innerBar.drawRect(x, y, w, h);
+  innerBar.endFill();
+  healthBar2.addChild(innerBar);
+
+  //Create the front red rectangle
+  let outerBar = new Graphics();
+  outerBar.beginFill(0x00bb43);
+  outerBar.drawRect(x, y, w - healthDecreaser, h);
+  outerBar.endFill();
+  healthBar2.addChild(outerBar);
+
+  healthBar2.outerBarSecond = outerBar;
+};
+
+const displayNameOfFighter = (
+  fighter,
+  competitor,
+  fighterVPosition,
+  competitorVPosition,
+  hPosition
+) => {
+  let fighterName = new Text(`name: ${[fighter['name']]}`, style);
+  fighterName.position.set(fighterVPosition, hPosition);
+  battlefield.stage.addChild(fighterName);
+
+  let competitorName = new Text(`name: ${[competitor['name']]}`, style);
+  competitorName.position.set(competitorVPosition, hPosition);
+  battlefield.stage.addChild(competitorName);
+};
+
+const fighting = (fighter, competitor, sprites) => {
+  const fighterStats = fighter.stats;
+  const competitorStats = competitor.stats;
+  let damage = 0;
+
+  if (fighterStats.speed > competitorStats.speed) {
+    damage =
+      (fighterStats.attack / competitorStats.defense) * getRandomInt(201);
+    damage = Math.round(damage);
+
+    isFighterFirst = true;
+    if (damage > 0) {
+      attack(fighterStats, competitorStats, sprites, damage);
+    }
+  } else {
+    damage =
+      (competitorStats.attack / fighterStats.defense) * getRandomInt(201);
+    damage = Math.round(damage);
+
+    isFighterFirst = false;
+    if (damage > 0) {
+      attack(fighterStats, competitorStats, sprites, damage);
+    }
+  }
+};
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+
+let moveBackward = false;
+
+const attack = (fighterStats, competitorStats, sprites, damage) => {
+  const [fighter, competitor] = sprites;
+
+  const setup = () => {
+    battlefield.ticker.add(() => play());
+  };
+
+  play = () => {
+    // healthBar1.outerBarFirst.clear();
+    // healthBar2.outerBarSecond.clear();
+
+    if (isFighterFirst) {
+      initiateAttack(fighter, 470, 120, 530, competitor, fighterStats);
+    } else {
+      initiateAttack(competitor, 180, 550, 100, fighter, competitorStats);
+    }
+  };
+  setup();
+};
+
+const delay = (ms) =>
+  new Promise((res) => {
+    id = setTimeout(res, ms);
+  });
+
+let id;
+
+const setBlinking = async (fighterToBlink) => {
+  let timer = 1000;
+  fighterToBlink.alpha = 0;
+  await delay(timer);
+  fighterToBlink.alpha = 1;
+
+  await delay(timer);
+  fighterToBlink.alpha = 0;
+
+  await delay(timer);
+  fighterToBlink.alpha = 1;
+
+  await delay(timer);
+  fighterToBlink.alpha = 0;
+
+  await delay(timer);
+  fighterToBlink.alpha = 1;
+  clearTimeout(id);
+};
+
+const initiateAttack = (
+  attacker,
+  startingPosition,
+  endingPosition,
+  healthbarPosition,
+  blinker,
+  stats
+) => {
+  attacker.vx = 1;
+
+  if (attacker.x === endingPosition && moveBackward) {
+    stopCurrentAndPlayOther();
+  }
+
+  if (isFighterFirst) {
+    if (attacker.x < startingPosition && !moveBackward) {
+      attacker.x += attacker.vx;
+    } else if (attacker.x === startingPosition) {
+      moveBackward = true;
+      attacker.vx = 0;
+      setBlinking(blinker);
+      makeHPbar2(0, healthbarPosition, 250, 120, 20);
+      healthDecreaser += 20;
+
+      attacker.x -= 1;
+    } else if (attacker.x <= startingPosition && moveBackward) {
+      attacker.x -= attacker.vx;
+    }
+  } else {
+    if (attacker.x > startingPosition && !moveBackward) {
+      attacker.x -= attacker.vx;
+    } else if (attacker.x === startingPosition) {
+      moveBackward = true;
+      attacker.vx = 0;
+
+      setBlinking(blinker);
+      makeHPbar2(0, healthbarPosition, 250, 120, 20);
+      healthDecreaser += 20;
+
+      attacker.x += 1;
+    } else if (attacker.x > startingPosition && moveBackward) {
+      attacker.x += attacker.vx;
+    }
+  }
+};
+
+const stopCurrentAndPlayOther = () => {
+  moveBackward = !moveBackward;
+  isFighterFirst = !isFighterFirst;
+};
+
 export default creatingSprites;
