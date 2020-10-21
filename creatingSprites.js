@@ -1,4 +1,4 @@
-import { app, battlefield, style } from './index.js';
+import { app, battlefield, endGame, style } from './index.js';
 // import clickOnAFighter from './battlefieldScene.js';
 
 let Text = PIXI.Text,
@@ -357,9 +357,17 @@ const attack = (fighterStats, competitorStats, sprites, damage) => {
     // healthBar2.outerBarSecond.clear();
 
     if (isFighterFirst) {
-      initiateAttack(fighter, 470, 120, 530, competitor, fighterStats);
+      initiateAttack(fighter, 470, 120, 530, competitor, fighterStats, damage);
     } else {
-      initiateAttack(competitor, 180, 550, 100, fighter, competitorStats);
+      initiateAttack(
+        competitor,
+        180,
+        550,
+        100,
+        fighter,
+        competitorStats,
+        damage
+      );
     }
   };
   setup();
@@ -398,7 +406,8 @@ const initiateAttack = (
   endingPosition,
   healthbarPosition,
   blinker,
-  stats
+  stats,
+  damage
 ) => {
   attacker.vx = 1;
 
@@ -416,6 +425,7 @@ const initiateAttack = (
       makeHPbar2(0, healthbarPosition, 250, 120, 20);
       healthDecreaser += 20;
 
+      hpDecreaser(stats, damage);
       attacker.x -= 1;
     } else if (attacker.x <= startingPosition && moveBackward) {
       attacker.x -= attacker.vx;
@@ -431,6 +441,7 @@ const initiateAttack = (
       makeHPbar2(0, healthbarPosition, 250, 120, 20);
       healthDecreaser += 20;
 
+      hpDecreaser(stats, damage);
       attacker.x += 1;
     } else if (attacker.x > startingPosition && moveBackward) {
       attacker.x += attacker.vx;
@@ -441,6 +452,17 @@ const initiateAttack = (
 const stopCurrentAndPlayOther = () => {
   moveBackward = !moveBackward;
   isFighterFirst = !isFighterFirst;
+};
+
+const hpDecreaser = (stats, damage) => {
+  console.log(stats);
+  console.log(damage);
+  stats.hp -= damage;
+  if (stats.hp < 0) {
+    document.body.removeChild(battlefield.view);
+    document.body.appendChild(endGame.view);
+    endGame.renderer.backgroundColor = 0x5553339;
+  }
 };
 
 export default creatingSprites;

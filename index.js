@@ -15,6 +15,11 @@ let battlefield = new Application({
   height: 500, // default: 600
 });
 
+let endGame = new Application({
+  width: 600, // default: 800
+  height: 400, // default: 600
+});
+
 let style = new TextStyle({
   fontFamily: 'Arial',
   fontSize: 12,
@@ -42,4 +47,4 @@ const drawCanvas = async () => {
 };
 drawCanvas();
 
-export { app, battlefield, style };
+export { app, battlefield ,endGame, style };
