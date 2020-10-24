@@ -1,6 +1,6 @@
 import creatingSprites from './creatingSprites.js';
 import takeCurentSprite from './getSprites.js';
-import sprites from './sprites.js';
+import fetchToApi from './fetchToApi.js';
 
 let Application = PIXI.Application,
   TextStyle = PIXI.TextStyle;
@@ -32,8 +32,14 @@ let style = new TextStyle({
 });
 
 const drawCanvas = async () => {
+  const getSprites = async () => {
+    const result = await fetchToApi(`https://pokeapi.co/api/v2/pokemon/`);
+
+    return result.results;
+  };
+
   const takeCurrentSprite = async () => {
-    const result = await takeCurentSprite(sprites);
+    const result = await takeCurentSprite(await getSprites());
     return result;
   };
 
@@ -42,9 +48,10 @@ const drawCanvas = async () => {
   document.body.appendChild(app.view);
   app.renderer.backgroundColor = 0x5555979;
 
-  console.log(result);
   creatingSprites(result);
 };
+
 drawCanvas();
 
-export { app, battlefield ,endGame, style };
+export default drawCanvas;
+export { app, battlefield, endGame, style };

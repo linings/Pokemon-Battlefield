@@ -20,6 +20,7 @@
   "dependencies": {
     "@pixi/ticker": "^5.3.3",
     "pixi-action": "^1.0.2",
+    "pixi-sound": "^3.0.5",
     "ramda": "^0.27.1"
   }
 }

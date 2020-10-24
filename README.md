@@ -1,15 +1,7 @@
-# 🚀 Welcome to your new awesome project!
-
-This project has been created using **webpack scaffold**, you can now run
+# Welcome to my awesome project!
 
 ```
-npm run build
-```
-
-or
+When you download the app, open it with live server to start it.
 
 ```
-yarn build
-```
-
-to bundle your application
+Let the battle begin!
