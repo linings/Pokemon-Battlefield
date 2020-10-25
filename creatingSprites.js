@@ -7,8 +7,6 @@ import {
 } from './battlefieldScene.js';
 
 let Text = PIXI.Text;
-
-let textureArray = [];
 let animatedSprite = '';
 
 const creatingSprites = (result) => {
@@ -18,11 +16,6 @@ const creatingSprites = (result) => {
     alienImages.push(result[i]['sprite_front']);
   }
   for (let i = 0; i < alienImages.length; i++) {
-    textureArray = [];
-    animatedSprite = '';
-    let texture = PIXI.Texture.from(alienImages[i]);
-    textureArray.push(texture);
-
     let name = new Text(`name: ${[result[i]['name']]}`, style);
     let ability = new Text(`ability: ${[result[i]['ability']]}`, style);
 
@@ -37,7 +30,8 @@ const creatingSprites = (result) => {
       health,
     ] = creatingStats(result, i);
 
-    animatedSprite = new PIXI.AnimatedSprite(textureArray);
+    let texture = PIXI.Texture.from(alienImages[i]);
+    animatedSprite = new PIXI.AnimatedSprite([texture]);
 
     if (i <= 4) {
       const vp = 155 * i + 25;
@@ -137,19 +131,22 @@ const creatingSprites = (result) => {
 };
 
 const creatingMoves = (result, i) => {
-  const moves = {
-    move1: result[i].moves[0].move.name,
-    move2: result[i].moves[1].move.name,
-    move3: result[i].moves[2].move.name,
-    move4: result[i].moves[3].move.name,
-  };
+  let moves = [];
+  let movesFromInput = result[i].moves;
 
-  let move1 = new Text(`move 1: ${moves.move1}`, style);
-  let move2 = new Text(`move 2: ${moves.move2}`, style);
-  let move3 = new Text(`move 3: ${moves.move3}`, style);
-  let move4 = new Text(`move 4: ${moves.move4}`, style);
+  for (let i = 0; i < movesFromInput.length; i++) {
+    let currentMove = new Text(
+      `move ${i + 1}: ${movesFromInput[i].move.name}`,
+      style
+    );
+    moves.push(currentMove);
+  }
 
-  return [move1, move2, move3, move4];
+  return moves;
+};
+
+const getMoves = (movesFromInput) => {
+
 };
 
 const creatingText = (vp, hp, spriteSpecialties) => {
